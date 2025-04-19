@@ -19,7 +19,7 @@ class ThrustMeasurementApp:
         'serial_timeout': 1,
         'plot_interval_ms': 100,
         'thrust_min_kgf': 0.0,
-        'thrust_max_kgf': 1000.0,  
+        'thrust_max_kgf': 12.0, 
         'gravity': 9.81  
     }
 
@@ -47,6 +47,7 @@ class ThrustMeasurementApp:
         self.ax.set_ylabel('Thrust (kgf)')
         self.ax.set_title('RThrust Measurement')
         self.ax.grid(True)
+        self.ax.set_ylim(0, 12) 
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.plot_frame)
         self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
         
@@ -95,7 +96,8 @@ class ThrustMeasurementApp:
         self.ax.set_ylabel('Thrust (kgf)')
         self.ax.set_title('Real-time Thrust Measurement')
         self.ax.grid(True)
-        self.line, = self.ax.plot([], [], lw=2, color='blue')
+        self.ax.set_ylim(0, 12)  
+        self.line, = self.ax.plot([], [], lw=2, color='red')
         
         self.read_thread = threading.Thread(target=self.read_from_serial, daemon=True)
         self.read_thread.start()
@@ -121,6 +123,7 @@ class ThrustMeasurementApp:
                 messagebox.showerror("Save Error", f"Failed to save data: {e}")
 
         self.close_serial()
+    
 
     def read_from_serial(self):
         """Read thrust data from Arduino in a separate thread."""
@@ -149,10 +152,7 @@ class ThrustMeasurementApp:
             times = [d[0] for d in self.data]
             thrusts = [d[1] for d in self.data]
             self.line.set_data(times, thrusts)
-            self.ax.set_xlim(0, max(times) + 0.1 if times else 1)
-            self.ax.set_ylim(min(thrusts) - 0.1 if thrusts else 0, max(thrusts) + 0.1 if thrusts else 1)
-            self.ax.relim()
-            self.ax.autoscale_view(scalex=False, scaley=True)
+            self.ax.set_xlim(0, max(times) + 0.1 if times else 1) 
         return self.line,
 
     def close_serial(self):
@@ -171,6 +171,8 @@ class ThrustMeasurementApp:
         self.is_measuring = False
         self.close_serial()
         self.root.destroy()
+        
+    
 
 if __name__ == "__main__":
     root = tk.Tk()
